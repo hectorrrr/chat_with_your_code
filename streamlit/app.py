@@ -1,6 +1,15 @@
 import streamlit as st
 import json
 import os
+import sys
+from pathlib import Path
+from utils.chatbot import Chatbot
+
+
+# Add the root folder to sys.path
+root_path = Path(__file__).parent.parent  # Adjust according to actual path
+sys.path.append(str(root_path))
+from rag_pipeline.multichatbot_client import QA_Rag
 
 def load_metadata(filename):
     """Load JSON data from a file and return as a dictionary."""
@@ -25,6 +34,14 @@ def load_metadata(filename):
 if 'metadata' not in st.session_state:
     st.session_state['metadata'] = load_metadata('./streamlit_metadata/users_conversations.json')
 
+## Initialize a dictionary of clients for each chat in memory:
+if 'chat' not in st.session_state:
+    st.session_state.chat = {}
+
+# Define once only the assistant:
+if 'assistants' not in st.session_state:
+
+    st.session_state.assistants = {}
 
 def update_user_conversations():
     """Function to reload and update in the local 
@@ -33,7 +50,7 @@ def update_user_conversations():
     print("Creating metadata file")
     os.makedirs(
         os.path.dirname(
-            './streamlit_metadata/users_conversations.json'), 
+            './streamlit_metadata/users_conversations.json'),
             exist_ok=True
         )
 
@@ -124,16 +141,34 @@ def create_chatbot():
         st.chat_message("assistant").write(response)
 
 if user_id:
-    # Active chat handling
-    if 'active_chat' not in st.session_state:
+    if user_id not in st.session_state.chat:
+        st.session_state.chat[user_id] = {}
+        st.session_state.assistants[user_id] = {}
+
+
+    # Define an assistant for that chat (if not exist)
+    if 'chat_id' not in st.session_state.assistants[user_id]:
         try:
-            st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
+            st.session_state.assistants[user_id]['chat_id'] = QA_Rag(user_id=user_id, conversation_id = 'chat_id')
         except:
             st.write("Create a new chat to start the process")
+
+
+    # Active chat handling
+    if 'active_chat' not in st.session_state or 'chat_id' not in st.session_state.chat[user_id]:
+        try:
+            st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
+            st.session_state.chat[user_id]['chat_id'] = Chatbot(user_id=user_id, conversation_id = 'chat_id')
+            st.write(st.session_state.chat[user_id])
+        except Exception as error:
+            st.write(error)
+            st.write("Create a new chat to start the process")
+
     # Display the active chat messages
     st.header(f"Messages in {st.session_state['active_chat']}")
+    
+        
 
-
-    app = create_chatbot()
+    st.session_state.chat[user_id]['chat_id'].run()
 else:
     st.write("Specify a User")
