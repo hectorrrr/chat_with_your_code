@@ -70,13 +70,6 @@ class QA_Rag:
 
     
     def set_rag_pipeline(self):
-        
-        # Runnable parallel for the retriever:
-        # setup_and_retrieval = RunnableParallel(
-        #     {"context": self.db.as_retriever(kwargs={"k":1}), "question": RunnablePassthrough()}
-        #     )
-        # # Here it is by default set to "AI"
-        # chain = setup_and_retrieval | self.prompts['conversation_guidelines'] | self.llm | self.output_parser
 
         chain = self.prompts | self.llm
         ## Involve memory around this chain:
