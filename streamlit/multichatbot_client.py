@@ -1,0 +1,88 @@
+"""
+In this file we define a client that uses the LCEL (LangChain Expression Language)
+methodology to define a conversation pipeline. In this way, the method is more customizable,
+allowing to evaluate and trace each component separately.
+"""
+import os
+import sys
+from pathlib import Path
+from src.resource_initializer import ResourceInitializer
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+from langchain.memory import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+# Add the root folder to sys.path
+root_path = Path(__file__).parent.parent.parent  # Adjust according to actual path
+sys.path.append(str(root_path))
+## Import services
+from src.resource_initializer import ResourceInitializer
+from operator import itemgetter
+
+
+class QA_Rag:
+    """
+    Class for managing RAG (Retrieval-Augmented Generation) system.
+    """
+    def __init__(
+            self,
+            config_path
+            ):
+        """
+        Initialize the RAG system with retriever and LLM
+        """
+        # Initialize all resources:
+        initializer = ResourceInitializer(config_path = config_path)
+        # Retriever
+        # self.memory = ConversationBufferMemory()
+        self.memory = initializer.set_memory()
+        self.embeddings = initializer.get_embeddings()
+        self.prompts = initializer.set_prompts()
+        self.db = initializer.get_vector_db()
+        self.llm = initializer.get_llm()
+        self.output_parser =  StrOutputParser()
+        self.rag_chain = self.set_rag_pipeline()
+        self.store = {}
+
+
+    def initialize_message_history(self):
+
+        ## Do things
+        return None
+
+ 
+    def handle_message_history(self,session_id: str) -> BaseChatMessageHistory:
+        if session_id not in self.store :
+            self.store [session_id] = ChatMessageHistory()
+        return self.store[session_id]
+
+
+
+    
+    def set_rag_pipeline(self):
+        
+        # Runnable parallel for the retriever:
+        setup_and_retrieval = RunnableParallel(
+            {"context": self.db.as_retriever(kwargs={"k":1}), "question": RunnablePassthrough()}
+            )
+        # Here it is by default set to "AI"
+        chain = setup_and_retrieval | self.prompts['conversation_guidelines'] | self.llm | self.output_parser
+
+        ## Involve memory around this chain:
+        with_message_history = RunnableWithMessageHistory(
+            itemgetter("input") | chain,
+            self.handle_message_history,
+            input_messages_key="input",
+            history_messages_key="history",
+        )
+
+    
+        return with_message_history
+
+    def invoke_rag(self, user_query):
+
+        return self.rag_chain.invoke(
+            {"input": user_query},
+            config={"configurable": {"session_id": "hlopezpe"}}, #,'callbacks': [ConsoleCallbackHandler()]
+        )
