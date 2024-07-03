@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 import sys
+import hashlib 
 from pathlib import Path
 from utils.chatbot import Chatbot
 
@@ -25,12 +26,18 @@ def load_metadata(filename):
         return {}
 
 
+code = """
+def hello_world():
+    print("Hello, world!")
 
+hello_world()
+"""
 
-
+st.code(code, language='python')
 
 
 # Initialize session state for user data and conversations if not already present
+current_active_chat = None ## TOBE IMPROVED
 if 'metadata' not in st.session_state:
     st.session_state['metadata'] = load_metadata('./streamlit_metadata/users_conversations.json')
 
@@ -42,6 +49,10 @@ if 'chat' not in st.session_state:
 if 'assistants' not in st.session_state:
 
     st.session_state.assistants = {}
+
+
+if 'conversation_cache' not in st.session_state:
+    st.session_state.conversation_cache = {}
 
 def update_user_conversations():
     """Function to reload and update in the local 
@@ -58,7 +69,19 @@ def update_user_conversations():
     with open('./streamlit_metadata/users_conversations.json', 'w') as f:
         json.dump(st.session_state['metadata'], f, indent=4)
 
+def create_chat_id(chat_name):
+    """This function, given a chat name
+    generates a unique hash identifier for it
 
+    Args:
+        chat_name (str): Name of the chat
+
+    Returns:
+        Str: Hash of the chat
+    """
+    hash_object = hashlib.sha256(chat_name.encode())
+    hash_hex = hash_object.hexdigest()
+    hash_hex[0:10]
 # Function to retrieve or create user metadata
 def get_or_create_user_metadata(user_id):
     """Add a new conversation to the session state
@@ -119,9 +142,13 @@ with st.sidebar:
     if user_id:
 
         st.title("Chats")
-        for chat_name in st.session_state['metadata'][user_id].values():
+        # st.session_state.conversation_cache[user_id] = {}
+        for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):
-                st.session_state['active_chat'] = chat_name
+                ## If a new chat is selected reset the messages
+                st.session_state.messages = []
+                st.session_state['active_chat'] = chat_id
+
 
     # Add a new chat section
     st.title("Add New Chat")
@@ -133,12 +160,6 @@ with st.sidebar:
         else:
             st.error("Please enter a unique chat name.")
 
-def create_chatbot():
-
-    if prompt := st.chat_input():
-        st.chat_message("user").write(prompt)
-        response = prompt
-        st.chat_message("assistant").write(response)
 
 if user_id:
     if user_id not in st.session_state.chat:
@@ -147,28 +168,37 @@ if user_id:
 
 
     # Define an assistant for that chat (if not exist)
-    if 'chat_id' not in st.session_state.assistants[user_id]:
+    if st.session_state['active_chat'] not in st.session_state.assistants[user_id]:
         try:
-            st.session_state.assistants[user_id]['chat_id'] = QA_Rag(user_id=user_id, conversation_id = 'chat_id')
+            st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(user_id=user_id, conversation_id = st.session_state['active_chat'])
+            st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
         except:
             st.write("Create a new chat to start the process")
 
-
+    # Display the active chat messages
+    st.header(f"Messages in {st.session_state['active_chat']}")
     # Active chat handling
-    if 'active_chat' not in st.session_state or 'chat_id' not in st.session_state.chat[user_id]:
+    if 'active_chat' not in st.session_state or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
         try:
-            st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
-            st.session_state.chat[user_id]['chat_id'] = Chatbot(user_id=user_id, conversation_id = 'chat_id')
+            current_active_chat = st.session_state['active_chat']
+            #st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
+            st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
+                                                                    user_id=user_id, 
+                                                                    conversation_id = st.session_state['active_chat'],
+                                                                    previous_messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
+                                                                                                                user_id=user_id,
+                                                                                                                conversation_id = st.session_state['active_chat']).messages
+                                                                                                                
+                                                                                    )
             st.write(st.session_state.chat[user_id])
         except Exception as error:
             st.write(error)
             st.write("Create a new chat to start the process")
 
-    # Display the active chat messages
-    st.header(f"Messages in {st.session_state['active_chat']}")
+    
     
         
 
-    st.session_state.chat[user_id]['chat_id'].run()
+    st.session_state.chat[user_id][st.session_state['active_chat']].run()
 else:
     st.write("Specify a User")

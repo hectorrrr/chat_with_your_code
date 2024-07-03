@@ -1,3 +1,5 @@
 chat_with_code_env/*
 .env
 *.pyc
+tests.ipynb
+chat_historial/*

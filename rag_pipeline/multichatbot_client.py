@@ -72,7 +72,7 @@ class QA_Rag:
  
     def handle_message_history(self,session_id: str) -> BaseChatMessageHistory:
         if session_id not in self.store :
-            self.store [session_id] = ChatMessageHistory()
+            self.store[session_id] = ChatMessageHistory()
         return self.store[session_id]
 
 
