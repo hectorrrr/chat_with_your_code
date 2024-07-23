@@ -26,15 +26,6 @@ def load_metadata(filename):
         return {}
 
 
-code = """
-def hello_world():
-    print("Hello, world!")
-
-hello_world()
-"""
-
-st.code(code, language='python')
-
 
 # Initialize session state for user data and conversations if not already present
 current_active_chat = None ## TOBE IMPROVED

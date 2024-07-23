@@ -38,7 +38,9 @@ class Chatbot:
             previous_messages (_type_): _description_
         """
         for msg in previous_messages:
-            st.chat_message(msg.type).write(msg.content)
+            st.session_state.messages.append(
+                {"role": msg.type, "content": msg.content})
+            # st.chat_message(msg.type).write(msg.content)
  
     def create_chatbot(self):
         # st.markdown(f"## Dossier patient:`{st.session_state.patient_id}`")
@@ -52,7 +54,7 @@ class Chatbot:
  
             with st.spinner("Writing..."):
                 if st.session_state.assistants[self.user_id][self.conversation_id]:
-                    st.write("Chat history--->", st.session_state.assistants[self.user_id][self.conversation_id].rag_chain.get_session_history(user_id="hlopezpe", conversation_id = self.conversation_id))
+                    # st.write("Chat history--->", st.session_state.assistants[self.user_id][self.conversation_id].rag_chain.get_session_history(user_id="hlopezpe", conversation_id = self.conversation_id))
                     response = {
                         # "answer": rag_client.invoke_rag({'question':prompt,'chat_history':st.session_state.messages}
                         "answer": st.session_state.assistants[self.user_id][self.conversation_id].invoke_rag(prompt
@@ -65,10 +67,10 @@ class Chatbot:
                     }
                     
  
-            msg = {"content": response["answer"], "role": "assistant"}
+            msg = {"content": response["answer"].content, "role": "assistant"}
             st.session_state.messages.append(msg)
  
-            st.chat_message("assistant").write(response["answer"])
+            st.chat_message("assistant").write(response["answer"].content)
  
     def send_question(self, question):
         with st.spinner("Writing..."):
