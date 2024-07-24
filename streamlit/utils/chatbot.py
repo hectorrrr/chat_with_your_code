@@ -3,9 +3,6 @@ import streamlit as st
 import pathlib
 import sys
 
-
-#from src.rag_pipeline.chatbot_seq_chain_qa_pipeline import QA_Rag
-
  
 
 class Chatbot:
@@ -41,7 +38,7 @@ class Chatbot:
             st.session_state.messages.append(
                 {"role": msg.type, "content": msg.content})
             # st.chat_message(msg.type).write(msg.content)
- 
+
     def create_chatbot(self):
         # st.markdown(f"## Dossier patient:`{st.session_state.patient_id}`")
         for msg in st.session_state.messages:
