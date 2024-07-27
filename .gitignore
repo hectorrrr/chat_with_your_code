@@ -5,3 +5,4 @@ tests.ipynb
 chat_historial/*
 streamlit_metadata/users_conversations.json
 visualization/plotly.py
+src/utils/populate_KT_with_code.ipynb
