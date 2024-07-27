@@ -4,3 +4,4 @@ chat_with_code_env/*
 tests.ipynb
 chat_historial/*
 streamlit_metadata/users_conversations.json
+visualization/plotly.py
