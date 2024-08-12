@@ -10,7 +10,7 @@ from utils.chatbot import Chatbot
 # Add the root folder to sys.path
 root_path = Path(__file__).parent.parent  # Adjust according to actual path
 sys.path.append(str(root_path))
-from rag_pipeline.multichatbot_client import QA_Rag
+from src.rag_pipeline.multichatbot_client import QA_Rag
 
 def load_metadata(filename):
     """Load JSON data from a file and return as a dictionary."""
