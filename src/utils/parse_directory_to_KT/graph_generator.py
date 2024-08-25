@@ -210,7 +210,3 @@ def get_node_info(folder_name, nodes_relationships):
             return {'label': item['label'], 'name': item['name']}
     return None
 
-
-
-
-create_graph_for_directory(base_path="./data_science_full_repo", nodes_relationships=nodes_relationships)
