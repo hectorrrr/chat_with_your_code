@@ -12,6 +12,9 @@ root_path = Path(__file__).parent.parent  # Adjust according to actual path
 sys.path.append(str(root_path))
 from src.rag_pipeline.multichatbot_client import QA_Rag
 
+
+
+
 def load_metadata(filename):
     """Load JSON data from a file and return as a dictionary."""
     try:
@@ -40,6 +43,9 @@ if 'chat' not in st.session_state:
 if 'assistants' not in st.session_state:
 
     st.session_state.assistants = {}
+
+if 'active_chat'  not in st.session_state:
+    st.session_state['active_chat'] = None
 
 
 if 'conversation_cache' not in st.session_state:
@@ -83,6 +89,7 @@ def get_or_create_user_metadata(user_id):
     Returns:
         Dict: All conversations for the specified user.
     """
+    print("Updating conversations for User_ID")
     if user_id not in st.session_state['metadata'].keys():
         # Initialize with empty metadata and conversation list
         st.session_state['metadata'][user_id] = {}
@@ -99,10 +106,41 @@ def add_conversation(user_id, conversation_name):
         conversation_name (_type_): _description_
     """
     user_data = get_or_create_user_metadata(user_id)
+    print("Retrieved user data---->",user_data)
+    # st.write(user_data)
+    # If the conversation is new add it
     if conversation_name not in user_data.values():
         st.session_state['metadata'][user_id] = {**st.session_state['metadata'][user_id],  str(len(user_data.keys()) + 1): conversation_name}
 
     update_user_conversations()
+
+
+## Define main page
+# Create a full-width header
+st.markdown("""
+    <style>
+        .full-width-header {
+            background-color: #F63366;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            margin-left: 0px;
+            margin-right: 0px;
+            text-align: center;
+        }
+        .full-width-header h1, .full-width-header h4 {
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+    </style>
+    <div class="full-width-header">
+        <h2>Welcome to 'Chat with Your Code' 🚀</h2>
+        <h4>Increase your performance with code reproducibility</h4>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 
 
 # Styling for the sidebar and buttons
@@ -128,11 +166,13 @@ with st.sidebar:
     if load_user_button and user_id:
         user_data = get_or_create_user_metadata(user_id)
         st.session_state['active_user'] = user_id  # Set the active user in session state
+        # st.write(f"Active user {user_id}")
         st.success(f"Loaded data for User ID: {user_id}")
 
     if user_id:
 
         st.title("Chats")
+        # st.write(st.session_state['metadata'][user_id])
         # st.session_state.conversation_cache[user_id] = {}
         for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):
@@ -153,23 +193,24 @@ with st.sidebar:
 
 
 if user_id:
-    if user_id not in st.session_state.chat:
+    if user_id not in st.session_state.chat or user_id not in st.session_state.assistants:
         st.session_state.chat[user_id] = {}
         st.session_state.assistants[user_id] = {}
+        # st.write(f"Assistants---> {st.session_state.assistants[user_id]}")
 
 
     # Define an assistant for that chat (if not exist)
     if st.session_state['active_chat'] not in st.session_state.assistants[user_id]:
         try:
             st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(user_id=user_id, conversation_id = st.session_state['active_chat'])
-            st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
-        except:
-            st.write("Create a new chat to start the process")
+            # st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
+        except Exception as error:
+            st.write(f"Create a new chat to start the process {error}")
 
     # Display the active chat messages
-    st.header(f"Messages in {st.session_state['active_chat']}")
+    # st.header(f"Messages in {st.session_state['active_chat']}")
     # Active chat handling
-    if 'active_chat' not in st.session_state or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
+    if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
         try:
             current_active_chat = st.session_state['active_chat']
             #st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
@@ -181,7 +222,7 @@ if user_id:
                                                                                                                 conversation_id = st.session_state['active_chat']).messages
                                                                                                                 
                                                                                     )
-            st.write(st.session_state.chat[user_id])
+            # st.write(st.session_state.chat[user_id])
         except Exception as error:
             st.write(error)
             st.write("Create a new chat to start the process")
@@ -192,4 +233,5 @@ if user_id:
 
     st.session_state.chat[user_id][st.session_state['active_chat']].run()
 else:
-    st.write("Specify a User")
+    # Optional: Add a subtitle or description below the header
+    st.subheader("Specify a User to start the conversation")
