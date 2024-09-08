@@ -1,10 +1,19 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import os
 import sys
 import hashlib 
 from pathlib import Path
 from utils.chatbot import Chatbot
+
+
+# URL for the Dash app
+DASH_APP_URL = "http://localhost:8050"  # Replace with your Dash app's URL
+
+# Page 2: View Graph
+def page_view_graph():
+    components.iframe(DASH_APP_URL, width=1200, height=800)
 
 
 # Add the root folder to sys.path
@@ -115,30 +124,7 @@ def add_conversation(user_id, conversation_name):
     update_user_conversations()
 
 
-## Define main page
-# Create a full-width header
-st.markdown("""
-    <style>
-        .full-width-header {
-            background-color: #F63366;
-            padding: 20px;
-            border-radius: 10px;
-            width: 100%;
-            margin-left: 0px;
-            margin-right: 0px;
-            text-align: center;
-        }
-        .full-width-header h1, .full-width-header h4 {
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-        }
-    </style>
-    <div class="full-width-header">
-        <h2>Welcome to 'Chat with Your Code' 🚀</h2>
-        <h4>Increase your performance with code reproducibility</h4>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 
 
@@ -191,47 +177,83 @@ with st.sidebar:
         else:
             st.error("Please enter a unique chat name.")
 
+        # Add a button to trigger the graph page display
+    # Add two buttons
+    if st.button("Chats Page"):
+        st.session_state['last_selected'] = 'home'  # Update state when "Go to Main" is clicked
 
-if user_id:
-    if user_id not in st.session_state.chat or user_id not in st.session_state.assistants:
-        st.session_state.chat[user_id] = {}
-        st.session_state.assistants[user_id] = {}
-        # st.write(f"Assistants---> {st.session_state.assistants[user_id]}")
+    if st.button("View Knowledge Graph"):
+        st.session_state['last_selected'] = 'graph'  # Update state when "View Graph" is clicked
 
-
-    # Define an assistant for that chat (if not exist)
-    if st.session_state['active_chat'] not in st.session_state.assistants[user_id]:
-        try:
-            st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(user_id=user_id, conversation_id = st.session_state['active_chat'])
-            # st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
-        except Exception as error:
-            st.write(f"Create a new chat to start the process {error}")
-
-    # Display the active chat messages
-    # st.header(f"Messages in {st.session_state['active_chat']}")
-    # Active chat handling
-    if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
-        try:
-            current_active_chat = st.session_state['active_chat']
-            #st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
-            st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
-                                                                    user_id=user_id, 
-                                                                    conversation_id = st.session_state['active_chat'],
-                                                                    previous_messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
-                                                                                                                user_id=user_id,
-                                                                                                                conversation_id = st.session_state['active_chat']).messages
-                                                                                                                
-                                                                                    )
-            # st.write(st.session_state.chat[user_id])
-        except Exception as error:
-            st.write(error)
-            st.write("Create a new chat to start the process")
-
-    
-    
-        
-
-    st.session_state.chat[user_id][st.session_state['active_chat']].run()
+## To be replaced:
+if st.session_state['last_selected']=="graph":
+        # Call the graph page function when button is clicked
+    page_view_graph()
 else:
-    # Optional: Add a subtitle or description below the header
-    st.subheader("Specify a User to start the conversation")
+    ## Define main page
+    # Create a full-width header
+    st.markdown("""
+        <style>
+            .full-width-header {
+                background-color: #F63366;
+                padding: 20px;
+                border-radius: 10px;
+                width: 100%;
+                margin-left: 0px;
+                margin-right: 0px;
+                text-align: center;
+            }
+            .full-width-header h1, .full-width-header h4 {
+                color: white;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+            }
+        </style>
+        <div class="full-width-header">
+            <h2>Welcome to 'Chat with Your Code' 🚀</h2>
+            <h4>Increase your performance with code reproducibility</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    if user_id:
+        if user_id not in st.session_state.chat or user_id not in st.session_state.assistants:
+            st.session_state.chat[user_id] = {}
+            st.session_state.assistants[user_id] = {}
+            # st.write(f"Assistants---> {st.session_state.assistants[user_id]}")
+
+
+        # Define an assistant for that chat (if not exist)
+        if st.session_state['active_chat'] not in st.session_state.assistants[user_id]:
+            try:
+                st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(user_id=user_id, conversation_id = st.session_state['active_chat'])
+                # st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
+            except Exception as error:
+                st.write(f"Create a new chat to start the process {error}")
+
+        # Display the active chat messages
+        # st.header(f"Messages in {st.session_state['active_chat']}")
+        # Active chat handling
+        if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
+            try:
+                current_active_chat = st.session_state['active_chat']
+                #st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
+                st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
+                                                                        user_id=user_id, 
+                                                                        conversation_id = st.session_state['active_chat'],
+                                                                        previous_messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
+                                                                                                                    user_id=user_id,
+                                                                                                                    conversation_id = st.session_state['active_chat']).messages
+                                                                                                                    
+                                                                                        )
+                # st.write(st.session_state.chat[user_id])
+            except Exception as error:
+                st.write(error)
+                st.write("Create a new chat to start the process")
+
+        
+        
+            
+
+        st.session_state.chat[user_id][st.session_state['active_chat']].run()
+    else:
+        # Optional: Add a subtitle or description below the header
+        st.subheader("Specify a User to start the conversation")
