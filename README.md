@@ -69,7 +69,7 @@ NEO_4J_password=<>
 
 ## Usage
 
-Once we have everything set up, the first step would be to generate the knowledge graph from our data, this is completely customizable and is done with a manual/fixed logic, based in personal needs. Also this step will be in continuous improvement. You can find this development, as well as the current logic in [Graph Generation](src\utils\neo4j_graph_generation.ipynb). Customize and run those cells to get your own Knowledge graph. This will be automized in next steps.
+Once we have everything set up, the first step would be to generate the knowledge graph from our data, this is completely customizable and is done with a manual/fixed logic, based in personal needs. Also this step will be in continuous improvement. You can find this development, as well as the current logic in [Graph Generation](src/utils/neo4j_graph_generation.ipynb). Customize and run those cells to get your own Knowledge graph. This will be automized in next steps.
 
 Then, to run the application we need to do the following:
 
