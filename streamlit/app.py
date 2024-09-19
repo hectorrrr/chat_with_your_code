@@ -48,6 +48,9 @@ if 'metadata' not in st.session_state:
 if 'chat' not in st.session_state:
     st.session_state.chat = {}
 
+if 'last_selected' not in st.session_state:
+    st.session_state.last_selected = "home"
+
 # Define once only the assistant:
 if 'assistants' not in st.session_state:
 
@@ -125,6 +128,12 @@ def add_conversation(user_id, conversation_name):
 
 
 
+## Floating buttons
+
+# Initialize session state if not already set
+if 'last_selected' not in st.session_state:
+    st.session_state['last_selected'] = 'home'  # Default state
+
 
 
 
@@ -144,6 +153,18 @@ div.stButton > button {
 # Sidebar for chat session selection and adding new chats
 with st.sidebar:
 
+        # Top navigation buttons
+    st.markdown('<div class="top-buttons">', unsafe_allow_html=True)
+    
+     # Display the buttons based on the current state
+    if st.session_state['last_selected'] == 'home':
+        if st.button("View Knowledge Graph", key='view_graph'):
+            st.session_state['last_selected'] = 'graph'
+    else:
+        if st.button("View Chats Page", key='chats_page'):
+            st.session_state['last_selected'] = 'home'
+
+    
 
     user_id = st.text_input("Enter User ID")
     load_user_button = st.button("Load User")
@@ -178,13 +199,7 @@ with st.sidebar:
             st.error("Please enter a unique chat name.")
 
         # Add a button to trigger the graph page display
-    # Add two buttons
-    if st.button("Chats Page"):
-        st.session_state['last_selected'] = 'home'  # Update state when "Go to Main" is clicked
-
-    if st.button("View Knowledge Graph"):
-        st.session_state['last_selected'] = 'graph'  # Update state when "View Graph" is clicked
-
+    
 ## To be replaced:
 if st.session_state['last_selected']=="graph":
         # Call the graph page function when button is clicked
