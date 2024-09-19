@@ -69,6 +69,52 @@ NEO_4J_password=<>
 
 ## Usage
 
-Once we have everything set up, the first step would be to generate the knowledge graph from our data, this is completely customizable and is done with a manual/fixed logic, based in personal needs. Also this step will be in continuous improvement. You can find this development, as well as the current logic in [Graph Generation](src\utils\populate_KT_with_code.ipynb). Customize and run those cells to get your own Knowledge graph. This will be automized in next steps.
+Once we have everything set up, the first step would be to generate the knowledge graph from our data, this is completely customizable and is done with a manual/fixed logic, based in personal needs. Also this step will be in continuous improvement. You can find this development, as well as the current logic in [Graph Generation](src\utils\neo4j_graph_generation.ipynb). Customize and run those cells to get your own Knowledge graph. This will be automized in next steps.
 
+Then, to run the application we need to do the following:
+
+1. Initialize your Neo4j Database.
+
+2. Run Dash page: 
+
+```bash
+python .\streamlit\dash_pages\dash_graph.py
+```
+
+3. Run the streamlit app:
+
+```bash
+streamlit run .\streamlit\app.py
+```
+
+
+### Roadmap
+
+This is a personal project ongoing, so updates are coming in a slow pace. Here we list the several current functionalities of the reposity and some to come:
+
+*Current features*:
+
+* Multiple User and Chat management, with respective memories.
+
+* Custom Hybrid RAG pipeline (Graph + Hybrid Vector retrieval).
+
+* Knowledge graph generator (Notebook) from a repository.
+
+* Dash page displaying our Knowledge graph with node interactivity.
+
+*Future development*:
+
+* Dockerization of components.
+
+* Local LLMs integration.
+
+* Dash UI unification and visual/functional improvements.
+
+* File access from KG nodes (On going).
+
+* Regular LLM conversation appart from our functions based responses.
+
+* Use code tutorial section's as Nodes in the KG.
+
+And more to come.
 
