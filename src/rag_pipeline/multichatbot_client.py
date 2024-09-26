@@ -90,7 +90,8 @@ class QA_Rag:
         
         self.prompt_handle_conver =  PromptTemplate.from_template("""
             You are a conversational chatbot, designed to answer based mainly in the context you are provided to the user questions.
-            Questions are most likely related to coding doubts. You should provide code examples whenever possible.
+            Questions are most likely related to coding doubts. You should provide code examples whenever possible, always including in your response
+            the code functions from the context as they are not available to the user.
             Context: {context}
 
             User question: {input}
@@ -119,16 +120,16 @@ class QA_Rag:
         self.conversation_id = conversation_id
 
 
-    def initialize_message_history(self):
+    # def initialize_message_history(self):
 
-        ## Do things
-        return None
+    #     ## Do things
+    #     return None
 
  
-    def handle_message_history(self,session_id: str) -> BaseChatMessageHistory:
-        if session_id not in self.store:
-            self.store[session_id] = ChatMessageHistory()
-        return self.store[session_id]
+    # def handle_message_history(self,session_id: str) -> BaseChatMessageHistory:
+    #     if session_id not in self.store:
+    #         self.store[session_id] = ChatMessageHistory()
+    #     return self.store[session_id]
     
     def context_unifier(self,full_context):
         print("Received Context---->",full_context)
