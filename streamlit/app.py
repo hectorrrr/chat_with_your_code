@@ -13,7 +13,29 @@ DASH_APP_URL = "http://localhost:8050"  # Replace with your Dash app's URL
 
 # Page 2: View Graph
 def page_view_graph():
-    components.iframe(DASH_APP_URL, width=1200, height=800)
+    # Inject CSS to center the iframe
+    st.markdown(
+        """
+        <style>
+        .iframe-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+        .streamlit-expanderHeader {
+            padding: 0;  /* Removes padding from the expander header */
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+    # Create a centered div for the iframe
+    st.markdown('<div class="iframe-container">', unsafe_allow_html=True)
+    components.iframe(DASH_APP_URL, width=1400, height=1000)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
 
 
 # Add the root folder to sys.path
@@ -244,31 +266,30 @@ else:
             except Exception as error:
                 st.write(f"Create a new chat to start the process {error}")
 
-        # Display the active chat messages
-        # st.header(f"Messages in {st.session_state['active_chat']}")
+
         # Active chat handling
-        if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']:
+        if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']: 
+            ## Maybe I can remove the last condition so no chatbot is reloaded
             try:
                 current_active_chat = st.session_state['active_chat']
-                #st.session_state['active_chat'] = list(st.session_state['metadata'][user_id].keys())[0]
+                
                 st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
                                                                         user_id=user_id, 
                                                                         conversation_id = st.session_state['active_chat'],
                                                                         previous_messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
                                                                                                                     user_id=user_id,
                                                                                                                     conversation_id = st.session_state['active_chat']).messages
-                                                                                                                    
-                                                                                        )
+                                                                                                                        
+                                                                                            )
                 # st.write(st.session_state.chat[user_id])
             except Exception as error:
-                st.write(error)
-                st.write("Create a new chat to start the process")
+                # st.write(error)
+                st.write("Create or Select a chat to start the process")
 
         
         
-            
-
-        st.session_state.chat[user_id][st.session_state['active_chat']].run()
+        if st.session_state['active_chat']:  
+            st.session_state.chat[user_id][st.session_state['active_chat']].run()
     else:
         # Optional: Add a subtitle or description below the header
         st.subheader("Specify a User to start the conversation")
