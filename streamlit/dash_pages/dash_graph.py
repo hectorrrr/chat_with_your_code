@@ -104,7 +104,7 @@ def display_node_data(data):
     if data is None:
         return "", {'width': '0%', 'float': 'left', 'padding': '20px', 'backgroundColor': '#f8f9fa', 'overflow': 'hidden', 'transition': 'width 0.5s'}#, {'width': '100%', 'float': 'right', 'transition': 'width 0.5s'}
 
-    file_path = data.get('file_path')
+    file_path = "data_science_repo\\" + data.get('file_path') # TODO improve this
     # file_link = None
     if file_path:
         abs_file_path = os.path.abspath(file_path)

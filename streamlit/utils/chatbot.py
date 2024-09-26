@@ -21,13 +21,15 @@ class Chatbot:
             st.session_state["start"] = True
  
         if "messages" not in st.session_state:
-            st.session_state["messages"] = [
-                {"role": "assistant", "content": "I'm an AI assistant, how can I help?"}
-            ]
+            if previous_messages:
+                print("Reloading conversation")
+                self.reload_conversation(previous_messages)
+            else:
+                st.session_state["messages"] = [
+                    {"role": "assistant", "content": "I'm an AI assistant, how can I help?"}
+                ]
 
-        if previous_messages:
-            self.reload_conversation(previous_messages)
-
+        
     def reload_conversation(self,previous_messages):
         """_summary_
 
@@ -42,6 +44,7 @@ class Chatbot:
     def create_chatbot(self):
         # st.markdown(f"## Dossier patient:`{st.session_state.patient_id}`")
         for msg in st.session_state.messages:
+            print("rewritting convertr")
             st.chat_message(msg["role"]).write(msg["content"])
  
         if prompt := st.chat_input():
@@ -69,27 +72,21 @@ class Chatbot:
  
             st.chat_message("assistant").write(response["answer"].content)
  
-    def send_question(self, question):
-        with st.spinner("Writing..."):
-            st.write("Chat history--->", st.session_state.assistants[self.user_id][self.conversation_id].rag_chain.get_session_history(user_id=self.user_id, conversation_id = self.conversation_id))
-            response = {
-                # "answer": rag_client.invoke_rag({'question':question,'chat_history':st.session_state.messages}
-                    "answer": st.session_state.assistants[self.user_id][self.conversation_id].invoke_rag(      question     
-                )
-            }
+    # def send_question(self, question):
+    #     with st.spinner("Writing..."):
+    #         st.write("Chat history--->", st.session_state.assistants[self.user_id][self.conversation_id].rag_chain.get_session_history(user_id=self.user_id, conversation_id = self.conversation_id))
+    #         response = {
+    #             # "answer": rag_client.invoke_rag({'question':question,'chat_history':st.session_state.messages}
+    #                 "answer": st.session_state.assistants[self.user_id][self.conversation_id].invoke_rag(      question     
+    #             )
+    #         }
  
             
  
-        st.session_state.messages.append({"role": "user", "content": question})
-        st.session_state.messages.append(
-            {"role": "assistant", "content": response["answer"]}
-        )
+    #     st.session_state.messages.append({"role": "user", "content": question})
+    #     st.session_state.messages.append(
+    #         {"role": "assistant", "content": response["answer"]}
+    #     )
 
     def run(self):
-        # self.create_sidebar()
- 
-        # if st.session_state.chat_ready:
         self.create_chatbot()
-        # else:
-        #     self.default_chatbot()
-            # make_footer(st, ASSETS_PATH, n_lines=2)
