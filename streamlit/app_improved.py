@@ -9,43 +9,17 @@ logging.basicConfig(
 
 
 import streamlit as st
-import streamlit.components.v1 as components
 import sys
 from pathlib import Path
 from utils.chatbot import Chatbot
 from utils.session_utils import load_metadata, get_or_create_user_metadata, add_conversation, init_session_state
+from utils.streamlit_utils import page_view_graph
 
 
 
 
-# URL for the Dash app
-DASH_APP_URL = "http://localhost:8050"
 
-# Page 2: View Graph
-def page_view_graph():
-    # Inject CSS to center the iframe
-    st.markdown(
-        """
-        <style>
-        .iframe-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            margin: 0;
-        }
-        .streamlit-expanderHeader {
-            padding: 0;  /* Removes padding from the expander header */
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
 
-    # Create a centered div for the iframe
-    st.markdown('<div class="iframe-container">', unsafe_allow_html=True)
-    components.iframe(DASH_APP_URL, width=1400, height=1000)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
 
 
 # Add the root folder to sys.path
