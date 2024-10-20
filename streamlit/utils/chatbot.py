@@ -2,12 +2,15 @@ import streamlit as st
  
 import pathlib
 import sys
-
 import logging
 
-# Use the shared logging configuration
-logger = logging.getLogger(__name__)  # Create a logger instance with the name of the module
- 
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 class Chatbot:
     def __init__(self, user_id, conversation_id,previous_messages):
@@ -17,19 +20,21 @@ class Chatbot:
  
         if "chat_ready" not in st.session_state:
             st.session_state["chat_ready"] = False
- 
+
         if "disable_new" not in st.session_state:
             st.session_state["disable_new"] = False
  
         if "start" not in st.session_state:
             st.session_state["start"] = True
- 
+
+
+        logging.debug(f'Messages in session_state:{"messages" in st.session_state}')
         if "messages" not in st.session_state:
             if previous_messages:
                 logging.info(f"Reloading conversation with {previous_messages}")
                 self.reload_conversation(previous_messages)
             else:
-                st.session_state["messages"] = [
+                st.session_state.messages = [
                     {"role": "assistant", "content": "I'm an AI assistant, how can I help?"}
                 ]
 
@@ -40,14 +45,18 @@ class Chatbot:
         Args:
             previous_messages (_type_): _description_
         """
+        st.session_state.messages =  []
         for msg in previous_messages:
             st.session_state.messages.append(
                 {"role": msg.type, "content": msg.content})
 
     def create_chatbot(self):
         # st.markdown(f"## Dossier patient:`{st.session_state.patient_id}`")
+
+        logging.info("Created chatbot")
+        logging.info(f"Rewritting {st.session_state.messages}")
         for msg in st.session_state.messages:
-            logging.info("rewritting convertr")
+            logging.info("rewritting conversation")
             st.chat_message(msg["role"]).write(msg["content"])
  
         if prompt := st.chat_input():
@@ -66,7 +75,7 @@ class Chatbot:
                 else:
                     response = {
                         # "answer": rag_client.invoke_rag({'question':prompt,'chat_history':st.session_state.messages}
-                        "answer": "Load an LLM crack"
+                        "answer": "Load an LLM"
                     }
                     
  

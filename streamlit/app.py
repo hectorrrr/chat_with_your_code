@@ -1,3 +1,13 @@
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+
 import streamlit as st
 import streamlit.components.v1 as components
 import json
@@ -7,14 +17,7 @@ import hashlib
 from pathlib import Path
 from utils.chatbot import Chatbot
 
-import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 
 
 # URL for the Dash app
@@ -213,7 +216,7 @@ with st.sidebar:
         for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):
                 ## If a new chat is selected reset the messages
-                st.session_state.messages = []
+                # st.session_state.messages = []
                 st.session_state['active_chat'] = chat_id
 
 
@@ -279,6 +282,10 @@ else:
             try:
                 current_active_chat = st.session_state['active_chat']
                 
+                logging.info(f"""Previous messages {st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
+                                                                                                                    user_id=user_id,
+                                                                                                                    conversation_id = st.session_state['active_chat']).messages}""")
+
                 st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
                                                                         user_id=user_id, 
                                                                         conversation_id = st.session_state['active_chat'],
