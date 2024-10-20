@@ -1,18 +1,18 @@
 import logging
-
+import streamlit as st
+import sys
+from pathlib import Path
+from utils.chatbot import Chatbot
+from utils.session_utils import (load_metadata, get_or_create_user_metadata,
+                                add_conversation, init_session_state)
+from utils.streamlit_utils import page_view_graph
+# Add the root folder to sys.path
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-import streamlit as st
-import sys
-from pathlib import Path
-from utils.chatbot import Chatbot
-from utils.session_utils import load_metadata, get_or_create_user_metadata, add_conversation, init_session_state
-from utils.streamlit_utils import page_view_graph
-# Add the root folder to sys.path
 root_path = Path(__file__).parent.parent  # Adjust according to actual path
 sys.path.append(str(root_path))
 from src.rag_pipeline.multichatbot_client import QA_Rag
@@ -50,42 +50,43 @@ with st.sidebar:
         # Top navigation buttons
     st.markdown('<div class="top-buttons">', unsafe_allow_html=True)
     
-    ## Select the page to display
+    ## Select the page to display next
     view_page = "graph" if st.session_state['last_selected'] == 'home' else 'home'
     if st.button(f"View {view_page.capitalize()} Page", key='toggle_page'):
         st.session_state['last_selected'] = view_page
+        st.rerun()
+
+    # This is the opposity because the button shows the one is not currently loaded
+    if view_page != "home":
+        user_id = st.text_input("Enter User ID")
+        load_user_button = st.button("Load User")
+
+        # Load or create user data
+        if load_user_button and user_id:
+            user_data = get_or_create_user_metadata(user_id)
+            st.session_state['active_user'] = user_id
+            st.success(f"Loaded data for User ID: {user_id}")
+
+        if user_id:
+            st.title("Chats")
+            for chat_id, chat_name in st.session_state['metadata'][user_id].items():
+                if st.button(chat_name, key=chat_name):
+                    ## If a new chat is selected reset the messages
+                    st.session_state.messages = []
+                    st.session_state['active_chat'] = chat_id
 
 
-    user_id = st.text_input("Enter User ID")
-    load_user_button = st.button("Load User")
+        # Add a new chat section
+        st.title("Add New Chat")
+        new_chat_name = st.text_input("New Chat Name", key="new_chat_name")
+        if st.button("Create Chat", key="create_new_chat"):
+            if new_chat_name and new_chat_name not in st.session_state['metadata'][user_id].values():
+                add_conversation(user_id=user_id,conversation_name=new_chat_name)
+                st.rerun()
+            else:
+                st.error("Please enter a unique chat name.")
 
-    # Load or create user data
-    if load_user_button and user_id:
-        user_data = get_or_create_user_metadata(user_id)
-        st.session_state['active_user'] = user_id
-        st.success(f"Loaded data for User ID: {user_id}")
-
-    if user_id:
-        st.title("Chats")
-        for chat_id, chat_name in st.session_state['metadata'][user_id].items():
-            if st.button(chat_name, key=chat_name):
-                ## If a new chat is selected reset the messages
-                st.session_state.messages = []
-                st.session_state['active_chat'] = chat_id
-
-
-    # Add a new chat section
-    st.title("Add New Chat")
-    new_chat_name = st.text_input("New Chat Name", key="new_chat_name")
-    if st.button("Create Chat", key="create_new_chat"):
-        if new_chat_name and new_chat_name not in st.session_state['metadata'][user_id].values():
-            add_conversation(user_id=user_id,conversation_name=new_chat_name)
-            st.rerun()
-        else:
-            st.error("Please enter a unique chat name.")
-
-    
-## To be replaced:
+## Load the graph page:
 if st.session_state['last_selected']=="graph":
     # Call the graph page function when button is clicked
     page_view_graph()
@@ -118,44 +119,43 @@ else:
         if user_id not in st.session_state.chat or user_id not in st.session_state.assistants:
             st.session_state.chat[user_id] = {}
             st.session_state.assistants[user_id] = {}
-            # st.write(f"Assistants---> {st.session_state.assistants[user_id]}")
-
 
         # Define an assistant for that chat (if not exist)
         if st.session_state['active_chat'] not in st.session_state.assistants[user_id]:
             try:
-                st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(user_id=user_id, conversation_id = st.session_state['active_chat'])
-                # st.write("Session",st.session_state.assistants[user_id][st.session_state['active_chat']].store)
+                st.session_state.assistants[user_id][st.session_state['active_chat']] = QA_Rag(
+                            user_id=user_id,
+                            conversation_id = st.session_state['active_chat']
+                            )
             except Exception as error:
                 st.write(f"Create a new chat to start the process {error}")
 
 
         # Active chat handling
-        if not st.session_state['active_chat'] or st.session_state['active_chat'] not in st.session_state.chat[user_id] or current_active_chat!=st.session_state['active_chat']: 
+        if (not st.session_state['active_chat']
+            or st.session_state['active_chat'] not in st.session_state.chat[user_id]
+            or current_active_chat!=st.session_state['active_chat']):
             ## Maybe I can remove the last condition so no chatbot is reloaded
             try:
                 current_active_chat = st.session_state['active_chat']
-                
-                logging.info(f"""Previous messages {st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
-                                                                                                                    user_id=user_id,
-                                                                                                                    conversation_id = st.session_state['active_chat']).messages}""")
+
+                ## Retrieve the messages for the currently active chat
+                messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
+                                            user_id=user_id,
+                                            conversation_id = st.session_state['active_chat']).messages
+
 
                 st.session_state.chat[user_id][st.session_state['active_chat']] = Chatbot(
-                                                                        user_id=user_id, 
-                                                                        conversation_id = st.session_state['active_chat'],
-                                                                        previous_messages = st.session_state.assistants[user_id][st.session_state['active_chat']].rag_chain.get_session_history(
-                                                                                                                    user_id=user_id,
-                                                                                                                    conversation_id = st.session_state['active_chat']).messages
-                                                                                                                        
-                                                                                            )
+                                            user_id=user_id,
+                                            conversation_id = st.session_state['active_chat'],
+                                            previous_messages = messages
+                )
                 # st.write(st.session_state.chat[user_id])
             except Exception as error:
                 # st.write(error)
                 st.write("Create or Select a chat to start the process")
 
-        
-        
-        if st.session_state['active_chat']:  
+        if st.session_state['active_chat']:
             st.session_state.chat[user_id][st.session_state['active_chat']].run()
     else:
         # Optional: Add a subtitle or description below the header
