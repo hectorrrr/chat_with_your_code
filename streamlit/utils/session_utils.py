@@ -54,3 +54,5 @@ def add_conversation(user_id, conversation_name):
         st.session_state['metadata'][user_id][str(len(user_data) + 1)] = conversation_name
 
     update_user_conversations()
+
+
