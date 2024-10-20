@@ -3,6 +3,10 @@ import streamlit as st
 import pathlib
 import sys
 
+import logging
+
+# Use the shared logging configuration
+logger = logging.getLogger(__name__)  # Create a logger instance with the name of the module
  
 
 class Chatbot:
@@ -22,7 +26,7 @@ class Chatbot:
  
         if "messages" not in st.session_state:
             if previous_messages:
-                print("Reloading conversation")
+                logging.info(f"Reloading conversation with {previous_messages}")
                 self.reload_conversation(previous_messages)
             else:
                 st.session_state["messages"] = [
@@ -39,12 +43,11 @@ class Chatbot:
         for msg in previous_messages:
             st.session_state.messages.append(
                 {"role": msg.type, "content": msg.content})
-            # st.chat_message(msg.type).write(msg.content)
 
     def create_chatbot(self):
         # st.markdown(f"## Dossier patient:`{st.session_state.patient_id}`")
         for msg in st.session_state.messages:
-            print("rewritting convertr")
+            logging.info("rewritting convertr")
             st.chat_message(msg["role"]).write(msg["content"])
  
         if prompt := st.chat_input():
@@ -72,21 +75,6 @@ class Chatbot:
  
             st.chat_message("assistant").write(response["answer"].content)
  
-    # def send_question(self, question):
-    #     with st.spinner("Writing..."):
-    #         st.write("Chat history--->", st.session_state.assistants[self.user_id][self.conversation_id].rag_chain.get_session_history(user_id=self.user_id, conversation_id = self.conversation_id))
-    #         response = {
-    #             # "answer": rag_client.invoke_rag({'question':question,'chat_history':st.session_state.messages}
-    #                 "answer": st.session_state.assistants[self.user_id][self.conversation_id].invoke_rag(      question     
-    #             )
-    #         }
- 
-            
- 
-    #     st.session_state.messages.append({"role": "user", "content": question})
-    #     st.session_state.messages.append(
-    #         {"role": "assistant", "content": response["answer"]}
-    #     )
 
     def run(self):
         self.create_chatbot()
