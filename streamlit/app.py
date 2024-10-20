@@ -7,6 +7,15 @@ import hashlib
 from pathlib import Path
 from utils.chatbot import Chatbot
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 # URL for the Dash app
 DASH_APP_URL = "http://localhost:8050"  # Replace with your Dash app's URL
@@ -53,10 +62,10 @@ def load_metadata(filename):
             data = json.load(file)
         return data
     except FileNotFoundError:
-        print("The file was not found.")
+        logging.error("The file was not found.")
         return {}
     except json.JSONDecodeError:
-        print("Error decoding JSON.")
+        logging.error("Error decoding JSON.")
         return {}
 
 
@@ -89,7 +98,7 @@ def update_user_conversations():
     """Function to reload and update in the local 
     file the conversation status
     """
-    print("Creating metadata file")
+    logging.debug("Creating metadata file")
     os.makedirs(
         os.path.dirname(
             './streamlit_metadata/users_conversations.json'),
@@ -123,12 +132,13 @@ def get_or_create_user_metadata(user_id):
     Returns:
         Dict: All conversations for the specified user.
     """
-    print("Updating conversations for User_ID")
+    logging.info("Updating conversations for User_ID")
     if user_id not in st.session_state['metadata'].keys():
         # Initialize with empty metadata and conversation list
         st.session_state['metadata'][user_id] = {}
         update_user_conversations()
     return st.session_state['metadata'][user_id]
+
 
 # Function to add a new conversation to a user
 def add_conversation(user_id, conversation_name):
@@ -140,8 +150,8 @@ def add_conversation(user_id, conversation_name):
         conversation_name (_type_): _description_
     """
     user_data = get_or_create_user_metadata(user_id)
-    print("Retrieved user data---->",user_data)
-    # st.write(user_data)
+    logging.info(f"Retrieved user data----> {user_data}")
+
     # If the conversation is new add it
     if conversation_name not in user_data.values():
         st.session_state['metadata'][user_id] = {**st.session_state['metadata'][user_id],  str(len(user_data.keys()) + 1): conversation_name}
@@ -151,8 +161,6 @@ def add_conversation(user_id, conversation_name):
 
 
 ## Floating buttons
-
-# Initialize session state if not already set
 if 'last_selected' not in st.session_state:
     st.session_state['last_selected'] = 'home'  # Default state
 
@@ -171,6 +179,7 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 # Sidebar for chat session selection and adding new chats
 with st.sidebar:
@@ -201,8 +210,6 @@ with st.sidebar:
     if user_id:
 
         st.title("Chats")
-        # st.write(st.session_state['metadata'][user_id])
-        # st.session_state.conversation_cache[user_id] = {}
         for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):
                 ## If a new chat is selected reset the messages
@@ -220,11 +227,10 @@ with st.sidebar:
         else:
             st.error("Please enter a unique chat name.")
 
-        # Add a button to trigger the graph page display
     
 ## To be replaced:
 if st.session_state['last_selected']=="graph":
-        # Call the graph page function when button is clicked
+    # Call the graph page function when button is clicked
     page_view_graph()
 else:
     ## Define main page

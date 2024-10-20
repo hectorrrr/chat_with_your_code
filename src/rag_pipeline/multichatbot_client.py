@@ -49,16 +49,7 @@ class QA_Rag:
         """
         Initialize the RAG system with retriever and LLM
         """
-        # Initialize all resources:
 
-        # self.prompts = ChatPromptTemplate.from_messages(
-        #     [
-        #         ("system", "You're an assistant by the name of Bob."),
-        #         MessagesPlaceholder(variable_name="history"),
-        #         ("human", "{input}"),
-
-        #     ]
-        # )
         self.cypher_gen_prompt = PromptTemplate.from_template(
             """
             You are a Cypher language expert.
@@ -120,17 +111,6 @@ class QA_Rag:
         self.conversation_id = conversation_id
 
 
-    # def initialize_message_history(self):
-
-    #     ## Do things
-    #     return None
-
- 
-    # def handle_message_history(self,session_id: str) -> BaseChatMessageHistory:
-    #     if session_id not in self.store:
-    #         self.store[session_id] = ChatMessageHistory()
-    #     return self.store[session_id]
-    
     def context_unifier(self,full_context):
         print("Received Context---->",full_context)
         unified_context = full_context['graph_context'] + full_context['vector_context'] 
@@ -183,8 +163,6 @@ class QA_Rag:
         summarisation_chain =  {"chat_history": itemgetter('history') | RunnableLambda(self.select_last_n_messages), "input_message": itemgetter('input')}| self.prompt_summarise_conver | self.llm | StrOutputParser()
         final_chain =  {'context' :summarisation_chain | {'graph_context': {'question': RunnablePassthrough(), 'schema': RunnableLambda(self.get_schema)} | graph_retriever_chain , 'vector_context':self.retriever} | RunnableLambda(self.context_unifier), 'input': itemgetter("input")} | self.prompt_handle_conver | self.llm
         
-        # chain = self.prompts | self.llm
-        ## Involve memory around this chain:
         with_message_history = RunnableWithMessageHistory(
             # itemgetter("input") | chain,
             final_chain,
