@@ -18,7 +18,7 @@ logging.basicConfig(
 
 
 # URL for the Dash app
-DASH_APP_URL = "http://localhost:8050"  # Replace with your Dash app's URL
+DASH_APP_URL = "http://localhost:8050"
 
 # Page 2: View Graph
 def page_view_graph():
