@@ -216,7 +216,7 @@ with st.sidebar:
         for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):
                 ## If a new chat is selected reset the messages
-                # st.session_state.messages = []
+                st.session_state.messages = []
                 st.session_state['active_chat'] = chat_id
 
 

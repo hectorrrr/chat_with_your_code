@@ -29,7 +29,7 @@ class Chatbot:
 
 
         logging.debug(f'Messages in session_state:{"messages" in st.session_state}')
-        if "messages" not in st.session_state:
+        if not  st.session_state.messages:
             if previous_messages:
                 logging.info(f"Reloading conversation with {previous_messages}")
                 self.reload_conversation(previous_messages)
