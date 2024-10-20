@@ -6,30 +6,16 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-
-
 import streamlit as st
 import sys
 from pathlib import Path
 from utils.chatbot import Chatbot
 from utils.session_utils import load_metadata, get_or_create_user_metadata, add_conversation, init_session_state
 from utils.streamlit_utils import page_view_graph
-
-
-
-
-
-
-
-
 # Add the root folder to sys.path
 root_path = Path(__file__).parent.parent  # Adjust according to actual path
 sys.path.append(str(root_path))
 from src.rag_pipeline.multichatbot_client import QA_Rag
-
-
-
-
 
 # Initialize session state for user data and conversations if not already present
 current_active_chat = None # TOBE IMPROVED
@@ -64,15 +50,11 @@ with st.sidebar:
         # Top navigation buttons
     st.markdown('<div class="top-buttons">', unsafe_allow_html=True)
     
-     # Display the buttons based on the current state
-    if st.session_state['last_selected'] == 'home':
-        if st.button("View Knowledge Graph", key='view_graph'):
-            st.session_state['last_selected'] = 'graph'
-    else:
-        if st.button("View Chats Page", key='chats_page'):
-            st.session_state['last_selected'] = 'home'
+    ## Select the page to display
+    view_page = "graph" if st.session_state['last_selected'] == 'home' else 'home'
+    if st.button(f"View {view_page.capitalize()} Page", key='toggle_page'):
+        st.session_state['last_selected'] = view_page
 
-    
 
     user_id = st.text_input("Enter User ID")
     load_user_button = st.button("Load User")
@@ -80,12 +62,10 @@ with st.sidebar:
     # Load or create user data
     if load_user_button and user_id:
         user_data = get_or_create_user_metadata(user_id)
-        st.session_state['active_user'] = user_id  # Set the active user in session state
-        # st.write(f"Active user {user_id}")
+        st.session_state['active_user'] = user_id
         st.success(f"Loaded data for User ID: {user_id}")
 
     if user_id:
-
         st.title("Chats")
         for chat_id, chat_name in st.session_state['metadata'][user_id].items():
             if st.button(chat_name, key=chat_name):

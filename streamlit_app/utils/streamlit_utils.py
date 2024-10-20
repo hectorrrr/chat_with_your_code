@@ -30,3 +30,4 @@ def page_view_graph():
     components.iframe(DASH_APP_URL, width=1400, height=1000)
     st.markdown('</div>', unsafe_allow_html=True)
     
+
